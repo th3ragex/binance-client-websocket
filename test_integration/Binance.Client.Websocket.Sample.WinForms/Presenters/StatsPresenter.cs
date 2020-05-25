@@ -72,15 +72,15 @@ namespace Binance.Client.Websocket.Sample.WinForms.Presenters
                 _view.Status($"Reconnected (type: {type})", StatusType.Info);
             });
 
-            _communicator.DisconnectionHappened.Subscribe(type =>
+            _communicator.DisconnectionHappened.Subscribe(info =>
             {
-                if (type == DisconnectionType.Error)
+                if (info.Type == DisconnectionType.Error && _communicator.ErrorReconnectTimeout.HasValue)
                 {
-                    _view.Status($"Disconnected by error, next try in {_communicator.ErrorReconnectTimeoutMs/1000} sec", 
+                    _view.Status($"Disconnected by error, next try in {_communicator.ErrorReconnectTimeout.Value.TotalSeconds} sec", 
                         StatusType.Error);
                     return;
                 }
-                _view.Status($"Disconnected (type: {type})", 
+                _view.Status($"Disconnected (type: {info.Type})", 
                     StatusType.Warning);
             });
 
