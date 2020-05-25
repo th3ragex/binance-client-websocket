@@ -23,7 +23,7 @@ namespace Binance.Client.Websocket.Responses.Books
             if (!stream.Contains("depth"))
                 return false;
 
-            if (stream.EndsWith("depth"))
+            if (stream.EndsWith("depth") || stream.EndsWith("depth@100ms"))
             {
                 // ignore, not partial, but diff response
                 return false;

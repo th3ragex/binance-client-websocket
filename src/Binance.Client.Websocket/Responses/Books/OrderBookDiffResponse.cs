@@ -17,7 +17,7 @@ namespace Binance.Client.Websocket.Responses.Books
             if (stream == null)
                 return false;
 
-            if (!stream.EndsWith("depth"))
+            if (!stream.EndsWith("depth") && !stream.EndsWith("depth@100ms"))
             {
                 // ignore, not order book diff
                 return false;
