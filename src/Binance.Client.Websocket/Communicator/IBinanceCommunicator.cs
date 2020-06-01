@@ -1,4 +1,5 @@
-﻿using Websocket.Client;
+﻿using System.Collections.Generic;
+using Websocket.Client;
 
 namespace Binance.Client.Websocket.Communicator
 {

@@ -25,15 +25,20 @@ namespace Binance.Client.Websocket.Client
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         private readonly IBinanceCommunicator _communicator;
+        private readonly IBinanceReferenceOrderBookCommunicator _referenceOrderBookCommunicator;
         private readonly IDisposable _messageReceivedSubscription;
+        private readonly IDisposable _rlobMessageReceivedSubscription;
 
         /// <inheritdoc />
-        public BinanceWebsocketClient(IBinanceCommunicator communicator)
+        public BinanceWebsocketClient(IBinanceCommunicator communicator, IBinanceReferenceOrderBookCommunicator referenceOrderBookCommunicator =null)
         {
             BnbValidations.ValidateInput(communicator, nameof(communicator));
 
             _communicator = communicator;
             _messageReceivedSubscription = _communicator.MessageReceived.Subscribe(HandleMessage);
+
+            _referenceOrderBookCommunicator = referenceOrderBookCommunicator;
+            _rlobMessageReceivedSubscription = _referenceOrderBookCommunicator.MessageReceived.Subscribe(HandleMessage);
         }
 
         /// <summary>
@@ -47,6 +52,7 @@ namespace Binance.Client.Websocket.Client
         public void Dispose()
         {
             _messageReceivedSubscription?.Dispose();
+            _rlobMessageReceivedSubscription?.Dispose();
         }
 
         /// <summary>
@@ -67,12 +73,27 @@ namespace Binance.Client.Websocket.Client
 
             if (currentUrl.Contains("stream?"))
             {
+                // TODO BUG: setting subscriptons twice won't work...
                 // do nothing, already configured
                 return baseUrl;
             }
 
             var newUrl = new Uri($"{currentUrl.TrimEnd('/')}{urlPartFull}");
             return newUrl;
+        }
+
+        private void SubscribeToRLobs(params SubscriptionBase[] subscriptions)
+        {
+            var rlobSymbols = subscriptions.OfType<OrderBookDiffSubscription>().Where(s => s.SubscribeToReferenceOrderBook).Select(s => s.Symbol);
+
+            // TODO more than is not supported, later...
+            var symbol = rlobSymbols.Single();
+
+            if (_referenceOrderBookCommunicator == null)
+                throw new Exception("Can't subscribe to RLOB without communicator.");
+
+            _referenceOrderBookCommunicator?.SubscribeToReferenceOrderBook(symbol, TimeSpan.FromSeconds(60));
+                
         }
 
         /// <summary>
@@ -83,6 +104,8 @@ namespace Binance.Client.Websocket.Client
         {
             var newUrl = PrepareSubscriptions(_communicator.Url, subscriptions);
             _communicator.Url = newUrl;
+
+            SubscribeToRLobs(subscriptions);
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 using Binance.Client.Websocket.Communicator;
 using Websocket.Client;
@@ -12,6 +13,9 @@ namespace Binance.Client.Websocket.Websockets
         public BinanceWebsocketCommunicator(Uri url, Func<ClientWebSocket> clientFactory = null) 
             : base(url, clientFactory)
         {
+            BaseUrl = url;
         }
+
+        public Uri BaseUrl { get; }
     }
 }
