@@ -99,6 +99,7 @@ namespace Binance.Client.Websocket.ReferenceOrderBook
 
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _client.DefaultRequestHeaders.Clear();
             _client.DefaultRequestHeaders.Add("User-Agent", "DataOctopus");
 
             var referenceOrderBookJson = await _client.GetStringAsync(url);
